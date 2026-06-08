@@ -10,7 +10,9 @@
     "start": "node dist/server.js",
     "db:migrate": "ts-node-dev --transpile-only src/db/runMigrations.ts",
     "db:seed": "ts-node-dev --transpile-only src/db/runSeed.ts",
-    "db:check": "ts-node-dev --transpile-only src/db/checkDb.ts"
+    "db:check": "ts-node-dev --transpile-only src/db/checkDb.ts",
+    "db:setup": "npm run db:migrate && npm run db:seed",
+    "db:reset": "ts-node-dev --transpile-only src/db/resetDb.ts"
   },
   "keywords": [],
   "author": "",

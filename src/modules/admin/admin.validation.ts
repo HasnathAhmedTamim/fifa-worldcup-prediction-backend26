@@ -34,3 +34,7 @@ export const confirmTeamsSchema = z.object({
   team_a: z.string().min(1),
   team_b: z.string().min(1),
 });
+
+export const updateMatchStatusSchema = z.object({
+  status: z.enum(["pending", "upcoming", "live", "completed", "cancelled"]),
+});

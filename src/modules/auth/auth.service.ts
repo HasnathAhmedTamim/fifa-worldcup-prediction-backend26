@@ -3,6 +3,7 @@ import { pool } from "../../config/db";
 import { ApiError } from "../../utils/ApiError";
 import { generateToken } from "../../utils/generateToken";
 import { AuthSQL } from "./auth.sql";
+import { AdminSQL } from "../admin/admin.sql";
 
 type RegisterPayload = {
   name: string;
@@ -35,14 +36,28 @@ const register = async (payload: RegisterPayload) => {
 
   const user = createdUser.rows[0];
 
+  // Add -1 missed penalties for already completed matches
+  // Example: if 6 matches are already completed, new user starts from -6
+  if (user.role === "user") {
+    await pool.query(
+      AdminSQL.insertMissedPredictionsForCompletedMatchesByUser,
+      [user.id],
+    );
+
+    await pool.query(AdminSQL.recalculateAllUserStats);
+  }
+
+  const updatedUserResult = await pool.query(AuthSQL.getMe, [user.id]);
+  const updatedUser = updatedUserResult.rows[0];
+
   const token = generateToken({
-    id: user.id,
-    email: user.email,
-    role: user.role,
+    id: updatedUser.id,
+    email: updatedUser.email,
+    role: updatedUser.role,
   });
 
   return {
-    user,
+    user: updatedUser,
     token,
   };
 };

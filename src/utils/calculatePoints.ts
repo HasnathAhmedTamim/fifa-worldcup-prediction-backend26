@@ -65,8 +65,9 @@ const calculateGroupPoints = (
     };
   }
 
+  // Wrong group prediction
   return {
-    points: 0,
+    points: -1,
     is_exact_score: false,
     is_correct_winner: false,
     is_correct_qualifier: false,
@@ -94,6 +95,11 @@ const calculateKnockoutPoints = (
 
   if (correctQualifier) {
     points += 3;
+  }
+
+  // Knockout: if both score and qualifier are wrong, give -1
+  if (!exactScore && !correctQualifier) {
+    points = -1;
   }
 
   return {

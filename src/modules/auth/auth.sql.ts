@@ -6,14 +6,32 @@ export const AuthSQL = {
   `,
 
   createUser: `
-    INSERT INTO users (name, email, password, role)
-    VALUES ($1, $2, $3, $4)
-    RETURNING id, name, email, role, total_points, exact_scores, correct_winners, created_at
-  `,
+  INSERT INTO users (name, email, password, role)
+  VALUES ($1, $2, $3, $4)
+  RETURNING 
+    id, 
+    name, 
+    email, 
+    role, 
+    total_points, 
+    exact_scores, 
+    correct_winners,
+    wrong_predictions,
+    created_at
+`,
 
   getMe: `
-    SELECT id, name, email, role, total_points, exact_scores, correct_winners, champion_correct
-    FROM users
-    WHERE id = $1
-  `,
+  SELECT 
+    id, 
+    name, 
+    email, 
+    role, 
+    total_points, 
+    exact_scores, 
+    correct_winners, 
+    wrong_predictions,
+    champion_correct
+  FROM users
+  WHERE id = $1
+`,
 };

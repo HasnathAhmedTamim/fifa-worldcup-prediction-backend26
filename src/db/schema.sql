@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS users (
   total_points INT DEFAULT 0,
   exact_scores INT DEFAULT 0,
   correct_winners INT DEFAULT 0,
+  wrong_predictions INT DEFAULT 0,
   champion_correct BOOLEAN DEFAULT false,
 
   created_at TIMESTAMP DEFAULT NOW(),
