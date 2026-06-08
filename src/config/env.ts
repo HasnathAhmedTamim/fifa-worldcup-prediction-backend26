@@ -9,4 +9,5 @@ export const env = {
   jwtSecret: process.env.JWT_SECRET || "fallback_secret",
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || "7d",
   clientUrl: process.env.CLIENT_URL || "http://localhost:3000",
+  
 };
