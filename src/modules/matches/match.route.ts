@@ -1,7 +1,7 @@
-import express from "express";
+import { Router } from "express";
 import { MatchController } from "./match.controller";
 
-const router = express.Router();
+const router = Router();
 
 router.get("/", MatchController.getAllMatches);
 router.get("/today", MatchController.getTodayMatches);

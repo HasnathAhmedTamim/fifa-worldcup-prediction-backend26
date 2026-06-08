@@ -12,29 +12,28 @@ import { errorMiddleware } from "./middleware/error.middleware";
 
 export const app = express();
 
-const allowedOrigins = ["http://localhost:3000", process.env.CLIENT_URL].filter(
-  Boolean,
-);
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://client-kappa-eight-62.vercel.app",
+  process.env.CLIENT_URL,
+].filter(Boolean);
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow Postman, browser direct requests, server-to-server requests
       if (!origin) {
         return callback(null, true);
       }
 
-      // Allow exact frontend URL
       if (allowedOrigins.includes(origin)) {
         return callback(null, true);
       }
 
-      // Allow Vercel preview URLs
       if (origin.endsWith(".vercel.app")) {
         return callback(null, true);
       }
 
-      return callback(new Error("Not allowed by CORS"));
+      return callback(new Error(`Not allowed by CORS: ${origin}`));
     },
     credentials: true,
   }),
