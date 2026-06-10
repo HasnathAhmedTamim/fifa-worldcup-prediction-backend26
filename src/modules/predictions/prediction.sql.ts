@@ -58,4 +58,40 @@ export const PredictionSQL = {
     WHERE p.user_id = $1
     ORDER BY m.kickoff_at ASC
   `,
+
+  findCurrentTickerMatch: `
+    SELECT
+      id,
+      match_no,
+      team_a,
+      team_b,
+      team_a_placeholder,
+      team_b_placeholder,
+      match_date,
+      match_time,
+      kickoff_at,
+      stage,
+      round_name,
+      group_name,
+      venue,
+      status
+    FROM matches
+    WHERE status NOT IN ('completed', 'cancelled')
+    ORDER BY match_no ASC
+    LIMIT 1
+  `,
+
+  getPredictionTickerByMatchId: `
+    SELECT
+      u.name AS user_name,
+      p.predicted_team_a_score,
+      p.predicted_team_b_score,
+      p.predicted_qualifier,
+      p.created_at,
+      p.updated_at
+    FROM predictions p
+    JOIN users u ON p.user_id = u.id
+    WHERE p.match_id = $1
+    ORDER BY p.updated_at DESC, p.created_at DESC
+  `,
 };

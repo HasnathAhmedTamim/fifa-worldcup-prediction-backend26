@@ -25,7 +25,20 @@ const getMyPredictions = asyncHandler(async (req: Request, res: Response) => {
   });
 });
 
+const getPredictionTicker = asyncHandler(
+  async (req: Request, res: Response) => {
+    const ticker = await PredictionService.getPredictionTicker();
+
+    res.status(200).json({
+      success: true,
+      message: "Prediction ticker retrieved successfully",
+      data: ticker,
+    });
+  },
+);
+
 export const PredictionController = {
   submitPrediction,
   getMyPredictions,
+  getPredictionTicker,
 };

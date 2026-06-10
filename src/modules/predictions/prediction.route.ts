@@ -16,4 +16,7 @@ router.post(
 
 router.get("/my", authMiddleware, PredictionController.getMyPredictions);
 
+// Public ticker endpoint
+router.get("/ticker", PredictionController.getPredictionTicker);
+
 export const PredictionRoutes = router;

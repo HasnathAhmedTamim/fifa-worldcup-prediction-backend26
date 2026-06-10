@@ -21,6 +21,13 @@ const validatePredictionPermission = (
     throw new ApiError(400, "Teams are not confirmed yet");
   }
 
+  if (
+    payload.predicted_team_a_score < 0 ||
+    payload.predicted_team_b_score < 0
+  ) {
+    throw new ApiError(400, "Score cannot be negative");
+  }
+
   if (match.status !== "upcoming") {
     throw new ApiError(400, "Prediction is not open for this match");
   }
@@ -92,7 +99,31 @@ const getMyPredictions = async (userId: number) => {
   return result.rows;
 };
 
+const getPredictionTicker = async () => {
+  const matchResult = await pool.query(PredictionSQL.findCurrentTickerMatch);
+
+  if (matchResult.rows.length === 0) {
+    return {
+      match: null,
+      predictions: [],
+    };
+  }
+
+  const match = matchResult.rows[0];
+
+  const predictionsResult = await pool.query(
+    PredictionSQL.getPredictionTickerByMatchId,
+    [match.id],
+  );
+
+  return {
+    match,
+    predictions: predictionsResult.rows,
+  };
+};
+
 export const PredictionService = {
   submitPrediction,
   getMyPredictions,
+  getPredictionTicker,
 };
