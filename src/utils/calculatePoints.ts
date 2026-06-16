@@ -78,8 +78,6 @@ const calculateKnockoutPoints = (
   prediction: Prediction,
   match: Match,
 ): PointResult => {
-  let points = 0;
-
   const exactScore =
     prediction.predicted_team_a_score === match.actual_team_a_score &&
     prediction.predicted_team_b_score === match.actual_team_b_score;
@@ -89,26 +87,31 @@ const calculateKnockoutPoints = (
     Boolean(match.actual_qualifier) &&
     prediction.predicted_qualifier === match.actual_qualifier;
 
+  if (!correctQualifier) {
+    return {
+      points: -1,
+      is_exact_score: false,
+      is_correct_winner: false,
+      is_correct_qualifier: false,
+    };
+  }
+
   if (exactScore) {
-    points += 5;
-  }
-
-  if (correctQualifier) {
-    points += 3;
-  }
-
-  // Knockout: if both score and qualifier are wrong, give -1
-  if (!exactScore && !correctQualifier) {
-    points = -1;
+    return {
+      points: 5,
+      is_exact_score: true,
+      is_correct_winner: false,
+      is_correct_qualifier: true,
+    };
   }
 
   return {
-    points,
-    is_exact_score: exactScore,
+    points: 3,
+    is_exact_score: false,
     is_correct_winner: false,
-    is_correct_qualifier: correctQualifier,
+    is_correct_qualifier: true,
   };
-};
+}; 
 
 export const calculatePoints = (
   prediction: Prediction,
