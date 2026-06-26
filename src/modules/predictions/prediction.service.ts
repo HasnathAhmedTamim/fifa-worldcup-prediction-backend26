@@ -100,26 +100,29 @@ const getMyPredictions = async (userId: number) => {
 };
 
 const getPredictionTicker = async () => {
-  const matchResult = await pool.query(PredictionSQL.findCurrentTickerMatch);
-
-  if (matchResult.rows.length === 0) {
-    return {
-      match: null,
-      predictions: [],
-    };
-  }
-
-  const match = matchResult.rows[0];
-
-  const predictionsResult = await pool.query(
-    PredictionSQL.getPredictionTickerByMatchId,
-    [match.id],
+  const matchesResult = await pool.query(
+    PredictionSQL.findCurrentTickerMatches,
   );
 
-  return {
-    match,
-    predictions: predictionsResult.rows,
-  };
+  if (matchesResult.rows.length === 0) {
+    return [];
+  }
+
+  const ticker = [];
+
+  for (const match of matchesResult.rows) {
+    const predictionsResult = await pool.query(
+      PredictionSQL.getPredictionTickerByMatchId,
+      [match.id],
+    );
+
+    ticker.push({
+      match,
+      predictions: predictionsResult.rows,
+    });
+  }
+
+  return ticker;
 };
 
 export const PredictionService = {

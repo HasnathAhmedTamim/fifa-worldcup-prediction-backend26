@@ -59,27 +59,30 @@ export const PredictionSQL = {
     ORDER BY m.kickoff_at ASC
   `,
 
-  findCurrentTickerMatch: `
-    SELECT
-      id,
-      match_no,
-      team_a,
-      team_b,
-      team_a_placeholder,
-      team_b_placeholder,
-      match_date,
-      match_time,
-      kickoff_at,
-      stage,
-      round_name,
-      group_name,
-      venue,
-      status
+  findCurrentTickerMatches: `
+  SELECT
+    id,
+    match_no,
+    team_a,
+    team_b,
+    team_a_placeholder,
+    team_b_placeholder,
+    match_date,
+    match_time,
+    kickoff_at,
+    stage,
+    round_name,
+    group_name,
+    venue,
+    status
+  FROM matches
+  WHERE kickoff_at = (
+    SELECT MIN(kickoff_at)
     FROM matches
     WHERE status NOT IN ('completed', 'cancelled')
-    ORDER BY match_no ASC
-    LIMIT 1
-  `,
+  )
+  ORDER BY match_no ASC
+`,
 
   getPredictionTickerByMatchId: `
     SELECT
