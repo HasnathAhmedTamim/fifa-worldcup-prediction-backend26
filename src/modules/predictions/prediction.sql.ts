@@ -96,5 +96,6 @@ export const PredictionSQL = {
     JOIN users u ON p.user_id = u.id
     WHERE p.match_id = $1
     ORDER BY p.updated_at DESC, p.created_at DESC
+    LIMIT 30;
   `,
 };
