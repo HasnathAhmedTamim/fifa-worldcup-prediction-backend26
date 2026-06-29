@@ -8,6 +8,10 @@ type Prediction = {
 
 type Match = {
   stage: "group" | "knockout";
+
+  team_a: string;
+  team_b: string;
+
   actual_team_a_score: number;
   actual_team_b_score: number;
   actual_qualifier?: string | null;
@@ -41,7 +45,7 @@ const calculateGroupPoints = (
     return {
       points: 5,
       is_exact_score: true,
-      is_correct_winner: false,
+      is_correct_winner: true,
       is_correct_qualifier: false,
     };
   }
@@ -65,7 +69,6 @@ const calculateGroupPoints = (
     };
   }
 
-  // Wrong group prediction
   return {
     points: -1,
     is_exact_score: false,
@@ -92,14 +95,17 @@ const calculateKnockoutPoints = (
     match.actual_team_b_score,
   );
 
-  // Case 1: Actual match is NOT draw
-  // Qualifier is ignored
+  /**
+   * ------------------------------------------
+   * Normal win/loss after 90 minutes
+   * ------------------------------------------
+   */
   if (actualResult !== "DRAW") {
     if (exactScore) {
       return {
         points: 5,
         is_exact_score: true,
-        is_correct_winner: false,
+        is_correct_winner: true,
         is_correct_qualifier: false,
       };
     }
@@ -121,33 +127,67 @@ const calculateKnockoutPoints = (
     };
   }
 
-  // Case 2: Actual match is draw
-  const correctQualifier =
-    prediction.predicted_qualifier === match.actual_qualifier;
+  /**
+   * ------------------------------------------
+   * Actual match ended DRAW
+   * ------------------------------------------
+   */
 
-  if (!correctQualifier) {
+  // User also predicted DRAW
+  if (predictedResult === "DRAW") {
+    const correctQualifier =
+      prediction.predicted_qualifier === match.actual_qualifier;
+
+    if (!correctQualifier) {
+      return {
+        points: -1,
+        is_exact_score: false,
+        is_correct_winner: false,
+        is_correct_qualifier: false,
+      };
+    }
+
+    if (exactScore) {
+      return {
+        points: 5,
+        is_exact_score: true,
+        is_correct_winner: true,
+        is_correct_qualifier: true,
+      };
+    }
+
     return {
-      points: -1,
+      points: 3,
       is_exact_score: false,
-      is_correct_winner: false,
-      is_correct_qualifier: false,
-    };
-  }
-
-  if (exactScore) {
-    return {
-      points: 5,
-      is_exact_score: true,
-      is_correct_winner: false,
+      is_correct_winner: true,
       is_correct_qualifier: true,
     };
   }
 
-  if (predictedResult === "DRAW") {
+  /**
+   * ------------------------------------------
+   * User predicted a winner
+   * Example:
+   *
+   * Actual:
+   * 1-1
+   * Brazil qualifies
+   *
+   * Prediction:
+   * 2-1 Brazil
+   *
+   * ==> 3 points
+   * ------------------------------------------
+   */
+
+  const predictedWinner =
+    predictedResult === "TEAM_A_WIN" ? match.team_a : match.team_b;
+
+  if (predictedWinner === match.actual_qualifier) {
     return {
       points: 3,
       is_exact_score: false,
-      is_correct_winner: false,
+      is_correct_winner: true,
       is_correct_qualifier: true,
     };
   }
@@ -158,7 +198,7 @@ const calculateKnockoutPoints = (
     is_correct_winner: false,
     is_correct_qualifier: false,
   };
-}; 
+};
 
 export const calculatePoints = (
   prediction: Prediction,

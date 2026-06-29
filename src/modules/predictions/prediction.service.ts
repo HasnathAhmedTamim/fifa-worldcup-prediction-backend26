@@ -36,7 +36,7 @@ const validatePredictionPermission = (
     throw new ApiError(400, "Prediction time is over");
   }
 
-  // Knockout: qualifier required ONLY when predicting draw
+  // Knockout: qualifier required only when user predicts a draw
   if (
     match.stage === "knockout" &&
     payload.predicted_team_a_score === payload.predicted_team_b_score &&
@@ -45,10 +45,10 @@ const validatePredictionPermission = (
     throw new ApiError(400, "Qualifier is required when predicting a draw");
   }
 
-  // Validate qualifier only for draw predictions
+  // If qualifier is provided, it must be one of the teams
   if (
     match.stage === "knockout" &&
-    payload.predicted_team_a_score === payload.predicted_team_b_score &&
+    payload.predicted_qualifier &&
     payload.predicted_qualifier !== match.team_a &&
     payload.predicted_qualifier !== match.team_b
   ) {
@@ -69,6 +69,19 @@ const submitPrediction = async (userId: number, payload: PredictionPayload) => {
 
   validatePredictionPermission(match, payload);
 
+  // Store qualifier automatically for non-draw predictions
+  let qualifier = payload.predicted_qualifier ?? null;
+
+  if (match.stage === "knockout") {
+    if (payload.predicted_team_a_score > payload.predicted_team_b_score) {
+      qualifier = match.team_a;
+    } else if (
+      payload.predicted_team_b_score > payload.predicted_team_a_score
+    ) {
+      qualifier = match.team_b;
+    }
+  }
+
   const existingPrediction = await pool.query(
     PredictionSQL.findPredictionByUserAndMatch,
     [userId, payload.match_id],
@@ -80,7 +93,7 @@ const submitPrediction = async (userId: number, payload: PredictionPayload) => {
       [
         payload.predicted_team_a_score,
         payload.predicted_team_b_score,
-        payload.predicted_qualifier || null,
+        qualifier,
         userId,
         payload.match_id,
       ],
@@ -94,7 +107,7 @@ const submitPrediction = async (userId: number, payload: PredictionPayload) => {
     payload.match_id,
     payload.predicted_team_a_score,
     payload.predicted_team_b_score,
-    payload.predicted_qualifier || null,
+    qualifier,
   ]);
 
   return createdPrediction.rows[0];
