@@ -36,12 +36,19 @@ const validatePredictionPermission = (
     throw new ApiError(400, "Prediction time is over");
   }
 
-  if (match.stage === "knockout" && !payload.predicted_qualifier) {
-    throw new ApiError(400, "Qualifier is required for knockout match");
-  }
-
+  // Knockout: qualifier required ONLY when predicting draw
   if (
     match.stage === "knockout" &&
+    payload.predicted_team_a_score === payload.predicted_team_b_score &&
+    !payload.predicted_qualifier
+  ) {
+    throw new ApiError(400, "Qualifier is required when predicting a draw");
+  }
+
+  // Validate qualifier only for draw predictions
+  if (
+    match.stage === "knockout" &&
+    payload.predicted_team_a_score === payload.predicted_team_b_score &&
     payload.predicted_qualifier !== match.team_a &&
     payload.predicted_qualifier !== match.team_b
   ) {
@@ -67,7 +74,6 @@ const submitPrediction = async (userId: number, payload: PredictionPayload) => {
     [userId, payload.match_id],
   );
 
-  // If already predicted, update it before kickoff
   if (existingPrediction.rows.length > 0) {
     const updatedPrediction = await pool.query(
       PredictionSQL.updatePredictionByUserAndMatch,

@@ -82,9 +82,47 @@ const calculateKnockoutPoints = (
     prediction.predicted_team_a_score === match.actual_team_a_score &&
     prediction.predicted_team_b_score === match.actual_team_b_score;
 
+  const predictedResult = getMatchResult(
+    prediction.predicted_team_a_score,
+    prediction.predicted_team_b_score,
+  );
+
+  const actualResult = getMatchResult(
+    match.actual_team_a_score,
+    match.actual_team_b_score,
+  );
+
+  // Case 1: Actual match is NOT draw
+  // Qualifier is ignored
+  if (actualResult !== "DRAW") {
+    if (exactScore) {
+      return {
+        points: 5,
+        is_exact_score: true,
+        is_correct_winner: false,
+        is_correct_qualifier: false,
+      };
+    }
+
+    if (predictedResult === actualResult) {
+      return {
+        points: 3,
+        is_exact_score: false,
+        is_correct_winner: true,
+        is_correct_qualifier: false,
+      };
+    }
+
+    return {
+      points: -1,
+      is_exact_score: false,
+      is_correct_winner: false,
+      is_correct_qualifier: false,
+    };
+  }
+
+  // Case 2: Actual match is draw
   const correctQualifier =
-    Boolean(prediction.predicted_qualifier) &&
-    Boolean(match.actual_qualifier) &&
     prediction.predicted_qualifier === match.actual_qualifier;
 
   if (!correctQualifier) {
@@ -105,11 +143,20 @@ const calculateKnockoutPoints = (
     };
   }
 
+  if (predictedResult === "DRAW") {
+    return {
+      points: 3,
+      is_exact_score: false,
+      is_correct_winner: false,
+      is_correct_qualifier: true,
+    };
+  }
+
   return {
-    points: 3,
+    points: -1,
     is_exact_score: false,
     is_correct_winner: false,
-    is_correct_qualifier: true,
+    is_correct_qualifier: false,
   };
 }; 
 
