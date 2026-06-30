@@ -236,43 +236,58 @@ export const AdminSQL = {
 `,
 
   recalculateAllUserStats: `
-  UPDATE users u
-  SET
-    total_points =
-      COALESCE(prediction_stats.total_points, 0)
-      +
-      COALESCE(missed_stats.missed_points, 0),
+UPDATE users u
+SET
+  total_points =
+    COALESCE(prediction_stats.total_points, 0)
+    +
+    COALESCE(missed_stats.missed_points, 0),
 
-    exact_scores = COALESCE(prediction_stats.exact_scores, 0),
-    correct_winners = COALESCE(prediction_stats.correct_winners, 0),
-    wrong_predictions = COALESCE(prediction_stats.wrong_predictions, 0),
-    missed_predictions = COALESCE(missed_stats.missed_predictions, 0)
+  exact_scores = COALESCE(prediction_stats.exact_scores, 0),
 
-  FROM users target_user
+  correct_winners = COALESCE(prediction_stats.correct_winners, 0),
 
-  LEFT JOIN (
-    SELECT
-      user_id,
-      SUM(points) AS total_points,
-      COUNT(*) FILTER (WHERE is_exact_score = true) AS exact_scores,
-      COUNT(*) FILTER (
-        WHERE is_correct_winner = true
-           OR is_correct_qualifier = true
-      ) AS correct_winners,
-      COUNT(*) FILTER (WHERE points = -1) AS wrong_predictions
-    FROM predictions
-    GROUP BY user_id
-  ) prediction_stats ON prediction_stats.user_id = target_user.id
+  wrong_predictions = COALESCE(prediction_stats.wrong_predictions, 0),
 
-  LEFT JOIN (
-    SELECT
-      user_id,
-      SUM(points) AS missed_points,
-      COUNT(*) AS missed_predictions
-    FROM missed_predictions
-    GROUP BY user_id
-  ) missed_stats ON missed_stats.user_id = target_user.id
+  missed_predictions = COALESCE(missed_stats.missed_predictions, 0)
 
-  WHERE u.id = target_user.id
+FROM users target_user
+
+LEFT JOIN (
+  SELECT
+    user_id,
+
+    SUM(points) AS total_points,
+
+    COUNT(*) FILTER (
+      WHERE is_exact_score = true
+    ) AS exact_scores,
+
+    COUNT(*) FILTER (
+      WHERE
+        (is_correct_winner = true OR is_correct_qualifier = true)
+        AND is_exact_score = false
+    ) AS correct_winners,
+
+    COUNT(*) FILTER (
+      WHERE points = -1
+    ) AS wrong_predictions
+
+  FROM predictions
+  GROUP BY user_id
+) prediction_stats
+ON prediction_stats.user_id = target_user.id
+
+LEFT JOIN (
+  SELECT
+    user_id,
+    SUM(points) AS missed_points,
+    COUNT(*) AS missed_predictions
+  FROM missed_predictions
+  GROUP BY user_id
+) missed_stats
+ON missed_stats.user_id = target_user.id
+
+WHERE u.id = target_user.id
 `,
 };
