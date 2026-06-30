@@ -85,17 +85,11 @@ const calculateKnockoutPoints = (
     prediction.predicted_team_a_score === match.actual_team_a_score &&
     prediction.predicted_team_b_score === match.actual_team_b_score;
 
-  // Exact score always gets 5
-  if (exactScore) {
-    return {
-      points: 5,
-      is_exact_score: true,
-      is_correct_winner: false,
-      is_correct_qualifier: false,
-    };
-  }
+  const actualResult = getMatchResult(
+    match.actual_team_a_score,
+    match.actual_team_b_score,
+  );
 
-  // Determine predicted qualifier
   let predictedQualifier: string | null = null;
 
   if (prediction.predicted_team_a_score > prediction.predicted_team_b_score) {
@@ -108,7 +102,35 @@ const calculateKnockoutPoints = (
     predictedQualifier = prediction.predicted_qualifier ?? null;
   }
 
-  if (predictedQualifier && predictedQualifier === match.actual_qualifier) {
+  const qualifierCorrect = predictedQualifier === match.actual_qualifier;
+
+  /**
+   * Exact score
+   */
+  if (exactScore) {
+    // Draw match হলে qualifier-ও মিলতে হবে
+    if (actualResult === "DRAW" && !qualifierCorrect) {
+      return {
+        points: -1,
+        is_exact_score: false,
+        is_correct_winner: false,
+        is_correct_qualifier: false,
+      };
+    }
+
+    return {
+      points: 5,
+      is_exact_score: true,
+      is_correct_winner: false,
+      is_correct_qualifier: actualResult === "DRAW" ? true : false,
+    };
+  }
+
+  /**
+   * Not exact
+   */
+
+  if (qualifierCorrect) {
     return {
       points: 3,
       is_exact_score: false,
