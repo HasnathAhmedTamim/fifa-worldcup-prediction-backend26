@@ -85,98 +85,30 @@ const calculateKnockoutPoints = (
     prediction.predicted_team_a_score === match.actual_team_a_score &&
     prediction.predicted_team_b_score === match.actual_team_b_score;
 
-  const predictedResult = getMatchResult(
-    prediction.predicted_team_a_score,
-    prediction.predicted_team_b_score,
-  );
-
-  const actualResult = getMatchResult(
-    match.actual_team_a_score,
-    match.actual_team_b_score,
-  );
-
-  /**
-   * Actual match finished in normal time (not draw)
-   */
-  if (actualResult !== "DRAW") {
-    if (exactScore) {
-      return {
-        points: 5,
-        is_exact_score: true,
-        is_correct_winner: false,
-        is_correct_qualifier: false,
-      };
-    }
-
-    if (predictedResult === actualResult) {
-      return {
-        points: 3,
-        is_exact_score: false,
-        is_correct_winner: true,
-        is_correct_qualifier: false,
-      };
-    }
-
+  // Exact score always gets 5
+  if (exactScore) {
     return {
-      points: -1,
-      is_exact_score: false,
+      points: 5,
+      is_exact_score: true,
       is_correct_winner: false,
       is_correct_qualifier: false,
     };
   }
 
-  /**
-   * Actual match ended draw
-   */
+  // Determine predicted qualifier
+  let predictedQualifier: string | null = null;
 
-  // User predicted draw
-  if (predictedResult === "DRAW") {
-    const correctQualifier =
-      prediction.predicted_qualifier === match.actual_qualifier;
-
-    if (!correctQualifier) {
-      return {
-        points: -1,
-        is_exact_score: false,
-        is_correct_winner: false,
-        is_correct_qualifier: false,
-      };
-    }
-
-    if (exactScore) {
-      return {
-        points: 5,
-        is_exact_score: true,
-        is_correct_winner: false,
-        is_correct_qualifier: true,
-      };
-    }
-
-    return {
-      points: 3,
-      is_exact_score: false,
-      is_correct_winner: true,
-      is_correct_qualifier: true,
-    };
+  if (prediction.predicted_team_a_score > prediction.predicted_team_b_score) {
+    predictedQualifier = match.team_a;
+  } else if (
+    prediction.predicted_team_b_score > prediction.predicted_team_a_score
+  ) {
+    predictedQualifier = match.team_b;
+  } else {
+    predictedQualifier = prediction.predicted_qualifier ?? null;
   }
 
-  /**
-   * User predicted winner
-   * Example:
-   * Actual:
-   * 1-1
-   * Brazil qualifies
-   *
-   * Prediction:
-   * 2-1 Brazil
-   *
-   * => 3 points
-   */
-
-  const predictedWinner =
-    predictedResult === "TEAM_A_WIN" ? match.team_a : match.team_b;
-
-  if (predictedWinner === match.actual_qualifier) {
+  if (predictedQualifier && predictedQualifier === match.actual_qualifier) {
     return {
       points: 3,
       is_exact_score: false,
