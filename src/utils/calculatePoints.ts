@@ -45,7 +45,7 @@ const calculateGroupPoints = (
     return {
       points: 5,
       is_exact_score: true,
-      is_correct_winner: true,
+      is_correct_winner: false,
       is_correct_qualifier: false,
     };
   }
@@ -96,16 +96,14 @@ const calculateKnockoutPoints = (
   );
 
   /**
-   * ------------------------------------------
-   * Normal win/loss after 90 minutes
-   * ------------------------------------------
+   * Actual match finished in normal time (not draw)
    */
   if (actualResult !== "DRAW") {
     if (exactScore) {
       return {
         points: 5,
         is_exact_score: true,
-        is_correct_winner: true,
+        is_correct_winner: false,
         is_correct_qualifier: false,
       };
     }
@@ -128,12 +126,10 @@ const calculateKnockoutPoints = (
   }
 
   /**
-   * ------------------------------------------
-   * Actual match ended DRAW
-   * ------------------------------------------
+   * Actual match ended draw
    */
 
-  // User also predicted DRAW
+  // User predicted draw
   if (predictedResult === "DRAW") {
     const correctQualifier =
       prediction.predicted_qualifier === match.actual_qualifier;
@@ -151,7 +147,7 @@ const calculateKnockoutPoints = (
       return {
         points: 5,
         is_exact_score: true,
-        is_correct_winner: true,
+        is_correct_winner: false,
         is_correct_qualifier: true,
       };
     }
@@ -165,10 +161,8 @@ const calculateKnockoutPoints = (
   }
 
   /**
-   * ------------------------------------------
-   * User predicted a winner
+   * User predicted winner
    * Example:
-   *
    * Actual:
    * 1-1
    * Brazil qualifies
@@ -176,8 +170,7 @@ const calculateKnockoutPoints = (
    * Prediction:
    * 2-1 Brazil
    *
-   * ==> 3 points
-   * ------------------------------------------
+   * => 3 points
    */
 
   const predictedWinner =
